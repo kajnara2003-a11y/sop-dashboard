@@ -114,6 +114,7 @@
     .status.green { color: #387365; background: var(--mint); }
     .status.blue { color: var(--blue); background: var(--blue-soft); }
     .status.gray { color: #75817e; background: #ebeeeb; }
+    .repeat-badge { display: inline-flex; align-items: center; gap: 4px; margin-left: 5px; padding: 2px 6px; border-radius: 5px; color: #8b5b1f; background: var(--gold-soft); font-size: 9px; font-weight: 800; vertical-align: middle; }
     .risk { display: flex; align-items: center; gap: 8px; min-width: 95px; }
     .risk-track { width: 45px; height: 4px; border-radius: 3px; background: #e6e9e4; overflow: hidden; }
     .risk-track i { display: block; height: 100%; border-radius: inherit; }
@@ -426,7 +427,7 @@
       <div class="role-scope" id="roleScope"><svg><use href="#i-lock"/></svg><span><b id="roleScopeTitle">Ваш уровень доступа:</b> <span id="roleScopeText">доступ определяется ролью организации.</span></span></div>
 
       <section class="metrics">
-        <article class="metric"><div class="metric-label"><i></i>На сопровождении</div><div class="metric-value" id="activeCasesMetric">0</div><div class="metric-note"><strong id="familiesMetric">0 семей</strong> в реестре СОП</div></article>
+        <article class="metric"><div class="metric-label"><i></i>Дети в СОП</div><div class="metric-value" id="activeCasesMetric">0</div><div class="metric-note"><strong id="familiesMetric">0 семей</strong> в реестре СОП</div></article>
         <article class="metric" style="--metric-color:var(--red-soft);--metric-dot:var(--red)"><div class="metric-label"><i></i>Высокий риск</div><div class="metric-value" id="highRiskMetric">0</div><div class="metric-note">Нет загруженных случаев</div></article>
         <article class="metric" style="--metric-color:var(--gold-soft);--metric-dot:var(--gold)"><div class="metric-label"><i></i>Нарушены сроки</div><div class="metric-value">0</div><div class="metric-note">По мероприятиям планов ИПР</div></article>
         <article class="metric" style="--metric-color:var(--blue-soft);--metric-dot:var(--blue)"><div class="metric-label"><i></i>К снятию статуса</div><div class="metric-value">0</div><div class="metric-note">Нет подготовленных случаев</div></article>
@@ -441,11 +442,13 @@
         </div></article>
          <article class="card"><div class="card-head"><div><h2>Сводка по городу</h2><p>Обезличенные показатели по всем школам</p></div><span class="status blue">Город</span></div><div class="summary-list">
            <div class="summary-item"><div><span>Школы в сопровождении</span><b>Есть случаи СОП</b></div><strong id="citySchoolsCount">0</strong></div>
-           <div class="summary-item"><div><span>Семьи в реестре СОП</span><b>На текущую дату</b></div><strong id="cityCasesCount">0</strong></div>
+           <div class="summary-item"><div><span>Дети в реестре СОП</span><b>На текущую дату</b></div><strong id="cityCasesCount">0</strong></div>
+           <div class="summary-item"><div><span>Семьи в реестре СОП</span><b>Уникальные семьи по составу данных</b></div><strong id="cityFamiliesCount">0</strong></div>
            <div class="summary-item"><div><span>Высокий риск</span><b>Требуют приоритетного контроля</b></div><strong id="cityHighRiskCount">0</strong></div>
+           <div class="summary-item"><div><span>Повторно в СОП</span><b>После выхода из статуса СОП</b></div><strong id="cityRepeatCount">0</strong></div>
            <div class="summary-item"><div><span>Исполнение ИПР</span><b>По всем мероприятиям</b></div><strong id="cityIprPercent">0%</strong></div>
          </div></article>
-         <article class="card"><div class="card-head"><div><h2>Статистика по школам</h2><p>Сравнение количества случаев и исполнения ИПР</p></div><span class="status green">Актуально</span></div><div class="table-wrap"><table style="min-width:720px"><thead><tr><th>Школа</th><th>Случаи</th><th>Высокий риск</th><th>К снятию</th><th>Мероприятия</th><th>Исполнение ИПР</th></tr></thead><tbody id="schoolStatsRows"><tr><td colspan="6" class="empty show">Данных по школам пока нет.</td></tr></tbody></table></div></article>
+          <article class="card"><div class="card-head"><div><h2>Статистика по школам</h2><p>Дети, семьи, повторные случаи и исполнение ИПР</p></div><span class="status green">Актуально</span></div><div class="table-wrap"><table style="min-width:900px"><thead><tr><th>Школа</th><th>Дети</th><th>Семьи</th><th>Повторно</th><th>Высокий риск</th><th>К снятию</th><th>Мероприятия</th><th>Исполнение ИПР</th></tr></thead><tbody id="schoolStatsRows"><tr><td colspan="8" class="empty show">Данных по школам пока нет.</td></tr></tbody></table></div></article>
          <article class="card" style="grid-column:1/-1"><div class="card-head"><div><h2>Распределение случаев по городу</h2><p>Агрегированные показатели без возможности перехода к ребёнку</p></div></div><div class="table-wrap"><table style="min-width:620px"><thead><tr><th>Группа показателей</th><th>Всего</th><th>Высокий риск</th><th>Средний риск</th><th>Низкий риск</th><th>К снятию статуса</th></tr></thead><tbody id="cityDistributionRows"><tr><td><b>Все образовательные организации</b></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table></div></article>
       </section>
 
@@ -505,7 +508,7 @@
   </div>
 </div>
 
-<dialog id="caseDialog"><form method="dialog" id="caseForm"><div class="modal-head"><div><div class="eyebrow" id="caseDialogEyebrow">Новый случай</div><h2 id="caseDialogTitle">Добавить ребёнка и семью</h2></div><button class="close" value="cancel" aria-label="Закрыть">×</button></div><div class="modal-body"><div class="form-grid"><div class="field"><label for="childName">ФИО ребёнка</label><input id="childName" required placeholder="Например, Иванов Иван"></div><div class="field"><label for="childBirth">Дата рождения</label><input id="childBirth" type="date" required></div><div class="field"><label for="caseSchool">Образовательная организация</label><input id="caseSchool" required placeholder="Наименование школы"></div><div class="field"><label for="schoolClass">Класс</label><input id="schoolClass" placeholder="Например, 5 «А»"></div><div class="field"><label for="caseGuardian">Законный представитель</label><input id="caseGuardian" placeholder="ФИО"></div><div class="field"><label for="casePhone">Телефон</label><input id="casePhone" type="tel" placeholder="+7 000 000-00-00"></div><div class="field"><label for="caseAddress">Адрес проживания</label><input id="caseAddress" placeholder="Населённый пункт, улица, дом"></div><div class="field"><label for="caseFamily">Состав семьи</label><input id="caseFamily" placeholder="Например, мать, двое детей"></div><div class="field"><label for="caseRisk">Уровень риска</label><select id="caseRisk"><option value="high">Высокий</option><option value="medium">Средний</option><option value="low">Низкий</option></select></div><div class="field full"><label for="caseReason">Основание постановки на учёт</label><textarea id="caseReason" required placeholder="Кратко опишите установленные обстоятельства"></textarea></div></div><div class="modal-actions"><button class="btn" value="cancel">Отмена</button><button class="btn primary" value="default" id="saveCaseButton">Создать карточку</button></div></div></form></dialog>
+<dialog id="caseDialog"><form method="dialog" id="caseForm"><div class="modal-head"><div><div class="eyebrow" id="caseDialogEyebrow">Новый случай</div><h2 id="caseDialogTitle">Добавить ребёнка и семью</h2></div><button class="close" value="cancel" aria-label="Закрыть">×</button></div><div class="modal-body"><div class="form-grid"><div class="field"><label for="childName">ФИО ребёнка</label><input id="childName" required placeholder="Например, Иванов Иван"></div><div class="field"><label for="childBirth">Дата рождения</label><input id="childBirth" type="date" required></div><div class="field"><label for="caseSchool">Образовательная организация</label><input id="caseSchool" required placeholder="Наименование школы"></div><div class="field"><label for="schoolClass">Класс</label><input id="schoolClass" placeholder="Например, 5 «А»"></div><div class="field"><label for="caseGuardian">Законный представитель</label><input id="caseGuardian" placeholder="ФИО"></div><div class="field"><label for="casePhone">Телефон</label><input id="casePhone" type="tel" placeholder="+7 000 000-00-00"></div><div class="field"><label for="caseAddress">Адрес проживания</label><input id="caseAddress" placeholder="Населённый пункт, улица, дом"></div><div class="field"><label for="caseFamily">Состав семьи</label><input id="caseFamily" placeholder="Например, мать, двое детей"></div><div class="field"><label for="caseRisk">Уровень риска</label><select id="caseRisk"><option value="high">Высокий</option><option value="medium">Средний</option><option value="low">Низкий</option></select></div><label class="agreement"><input id="caseRepeat" type="checkbox">Повторное попадание после выхода из СОП</label><div class="field full"><label for="caseReason">Основание постановки на учёт</label><textarea id="caseReason" required placeholder="Кратко опишите установленные обстоятельства"></textarea></div></div><div class="modal-actions"><button class="btn" value="cancel">Отмена</button><button class="btn primary" value="default" id="saveCaseButton">Создать карточку</button></div></div></form></dialog>
 
 <dialog id="entryDialog"><form method="dialog" id="entryForm"><div class="modal-head"><div><div class="eyebrow">Журнал работы</div><h2>Новая запись</h2></div><button class="close" value="cancel">×</button></div><div class="modal-body"><div class="form-grid"><div class="field"><label for="entryType">Вид работы</label><select id="entryType"><option>Посещение семьи</option><option>Консультация</option><option>Телефонный контакт</option><option>Мониторинг</option><option>Межведомственное совещание</option></select></div><div class="field"><label for="entryDate">Дата</label><input id="entryDate" type="date" value="2026-09-23"></div><div class="field full"><label for="entryResult">Содержание и результат</label><textarea id="entryResult" required placeholder="Что проведено, кто участвовал, какой результат получен"></textarea></div></div><div class="modal-actions"><button class="btn" value="cancel">Отмена</button><button class="btn primary" value="default" id="saveEntryButton">Добавить в журнал</button></div></div></form></dialog>
 
@@ -841,16 +844,25 @@
     }
   }
 
+  function familyKey(row) {
+    const parts = [row.dataset.school, row.dataset.guardian, row.dataset.phone, row.dataset.address, row.dataset.family]
+      .map(value => (value || '').trim().toLowerCase()).filter(Boolean);
+    return parts.length > 1 ? parts.join('|') : `case:${row.dataset.id}`;
+  }
+
   function refreshCityStats() {
     const rows = $$('#caseRows tr');
     const measures = $$('#planList .plan-item');
     const bySchool = new Map();
-    const city = { cases: rows.length, high: 0, medium: 0, low: 0, removal: 0, schools: new Set(), totalMeasures: 0, completedMeasures: 0 };
+    const city = { cases: rows.length, high: 0, medium: 0, low: 0, removal: 0, repeat: 0, families: new Set(), schools: new Set(), totalMeasures: 0, completedMeasures: 0 };
     for (const row of rows) {
       const school = row.dataset.school || 'Школа не указана';
-      if (!bySchool.has(school)) bySchool.set(school, { cases: 0, high: 0, removal: 0, totalMeasures: 0, completedMeasures: 0 });
+      if (!bySchool.has(school)) bySchool.set(school, { cases: 0, families: new Set(), repeat: 0, high: 0, removal: 0, totalMeasures: 0, completedMeasures: 0 });
       const schoolStats = bySchool.get(school);
       schoolStats.cases++;
+      schoolStats.families.add(familyKey(row));
+      city.families.add(familyKey(row));
+      if (row.dataset.repeat === 'true') { schoolStats.repeat++; city.repeat++; }
       if (row.dataset.risk === 'high') { schoolStats.high++; city.high++; }
       if (row.dataset.risk === 'medium') city.medium++;
       if (row.dataset.risk === 'low') city.low++;
@@ -868,12 +880,14 @@
     const iprPercent = city.totalMeasures ? Math.round(city.completedMeasures / city.totalMeasures * 100) : 0;
     $('#citySchoolsCount').textContent = city.schools.size;
     $('#cityCasesCount').textContent = city.cases;
+    $('#cityFamiliesCount').textContent = city.families.size;
+    $('#familiesMetric').textContent = `${city.families.size} семей`;
     $('#cityHighRiskCount').textContent = city.high;
+    $('#cityRepeatCount').textContent = city.repeat;
     $('#cityIprPercent').textContent = `${iprPercent}%`;
     const bars = $$('#educationStats .aggregate-row');
     const values = [city.cases ? Math.round((city.cases - city.high) / city.cases * 100) : 0, city.cases ? Math.round(city.medium / city.cases * 100) : 0, city.cases ? Math.round(city.high / city.cases * 100) : 0, iprPercent];
     values.forEach((value, index) => { $('.bar-track i', bars[index]).style.width = `${value}%`; $('b', bars[index]).textContent = `${value}%`; });
-    $$('#educationStats .summary-list .summary-item strong').forEach((node, index) => node.textContent = [city.schools.size, city.cases, city.totalMeasures, '—'][index]);
     $('#cityDistributionRows').innerHTML = `<tr><td><b>Все образовательные организации</b></td><td>${city.cases}</td><td>${city.high}</td><td>${city.medium}</td><td>${city.low}</td><td>${city.removal}</td></tr>`;
     const statsRows = [...bySchool.entries()].sort(([a], [b]) => a.localeCompare(b, 'ru'));
     $('#schoolStatsRows').replaceChildren();
@@ -884,7 +898,7 @@
     } else for (const [school, stats] of statsRows) {
       const row = document.createElement('tr');
       const schoolPercent = stats.totalMeasures ? Math.round(stats.completedMeasures / stats.totalMeasures * 100) : 0;
-      row.innerHTML = `<td><b></b></td><td>${stats.cases}</td><td>${stats.high}</td><td>${stats.removal}</td><td>${stats.totalMeasures}</td><td><strong>${schoolPercent}%</strong></td>`;
+      row.innerHTML = `<td><b></b></td><td>${stats.cases}</td><td>${stats.families.size}</td><td>${stats.repeat}</td><td>${stats.high}</td><td>${stats.removal}</td><td>${stats.totalMeasures}</td><td><strong>${schoolPercent}%</strong></td>`;
       $('td b', row).textContent = school;
       $('#schoolStatsRows').append(row);
     }
@@ -990,6 +1004,7 @@
       $('#casePhone').value = selectedCaseRow.dataset.phone || '';
       $('#caseAddress').value = selectedCaseRow.dataset.address || '';
       $('#caseFamily').value = selectedCaseRow.dataset.family || '';
+      $('#caseRepeat').checked = selectedCaseRow.dataset.repeat === 'true';
       $('#caseRisk').value = selectedCaseRow.dataset.risk || 'medium';
       $('#caseReason').value = selectedCaseRow.dataset.reason || '';
     } else {
@@ -1068,9 +1083,11 @@
     row.dataset.address = $('#caseAddress').value.trim();
     row.dataset.family = $('#caseFamily').value.trim();
     row.dataset.reason = $('#caseReason').value.trim();
-    if (caseFormMode === 'create') row.innerHTML = `<td><div class="child"><div class="child-avatar"></div><div><strong></strong><span class="sub"></span></div></div></td><td><span class="status red">СОП</span></td><td><div class="risk"><div class="risk-track"><i></i></div><b></b></div></td><td><div class="deadline">Не назначен</div><span class="sub">добавьте мероприятие</span></td><td><span class="person-name"></span><span class="sub">КДН и ЗП</span></td><td><button class="row-button" aria-label="Открыть"><svg><use href="#i-arrow"/></svg></button></td>`;
+    row.dataset.repeat = String($('#caseRepeat').checked);
+    if (caseFormMode === 'create') row.innerHTML = `<td><div class="child"><div class="child-avatar"></div><div><strong></strong><span class="repeat-badge" hidden>↻ Повторно</span><span class="sub"></span></div></div></td><td><span class="status red">СОП</span></td><td><div class="risk"><div class="risk-track"><i></i></div><b></b></div></td><td><div class="deadline">Не назначен</div><span class="sub">добавьте мероприятие</span></td><td><span class="person-name"></span><span class="sub">КДН и ЗП</span></td><td><button class="row-button" aria-label="Открыть"><svg><use href="#i-arrow"/></svg></button></td>`;
     $('.child-avatar', row).textContent = initials(name);
     $('.child strong', row).textContent = name;
+    $('.repeat-badge', row).hidden = row.dataset.repeat !== 'true';
     $('.child .sub', row).textContent = [row.dataset.school, row.dataset.class ? `класс ${row.dataset.class}` : ''].filter(Boolean).join(' · ') || 'Школа и класс не указаны';
     $('.risk-track i', row).style.cssText = `width:${risk === 'high' ? 85 : risk === 'medium' ? 55 : 25}%;background:${riskColor}`;
     $('.risk b', row).textContent = riskLabel;
