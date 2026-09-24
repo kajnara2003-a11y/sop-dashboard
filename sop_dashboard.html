@@ -439,13 +439,14 @@
           <div class="aggregate-row"><span>Отрицательная динамика</span><div class="bar-track"><i style="width:0;background:var(--red)"></i></div><b>0%</b></div>
           <div class="aggregate-row"><span>Исполнение планов ИПР</span><div class="bar-track"><i style="width:0;background:var(--blue)"></i></div><b>0%</b></div>
         </div></article>
-        <article class="card"><div class="card-head"><div><h2>Сводка по системе</h2><p>Без фамилий и персональных карточек</p></div></div><div class="summary-list">
-          <div class="summary-item"><div><span>Образовательные организации</span><b>Участвуют в сопровождении</b></div><strong>0</strong></div>
-          <div class="summary-item"><div><span>Семьи в реестре СОП</span><b>На текущую дату</b></div><strong>0</strong></div>
-          <div class="summary-item"><div><span>Мероприятия за месяц</span><b>Проведено всеми ведомствами</b></div><strong>0</strong></div>
-          <div class="summary-item"><div><span>Средний срок сопровождения</span><b>По закрытым случаям</b></div><strong>—</strong></div>
-        </div></article>
-        <article class="card" style="grid-column:1/-1"><div class="card-head"><div><h2>Распределение случаев</h2><p>Агрегированные показатели без возможности перехода к ребёнку</p></div></div><div class="table-wrap"><table style="min-width:620px"><thead><tr><th>Группа показателей</th><th>Всего</th><th>Высокий риск</th><th>Средний риск</th><th>Низкий риск</th><th>К снятию статуса</th></tr></thead><tbody><tr><td><b>Все образовательные организации</b></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table></div></article>
+         <article class="card"><div class="card-head"><div><h2>Сводка по городу</h2><p>Обезличенные показатели по всем школам</p></div><span class="status blue">Город</span></div><div class="summary-list">
+           <div class="summary-item"><div><span>Школы в сопровождении</span><b>Есть случаи СОП</b></div><strong id="citySchoolsCount">0</strong></div>
+           <div class="summary-item"><div><span>Семьи в реестре СОП</span><b>На текущую дату</b></div><strong id="cityCasesCount">0</strong></div>
+           <div class="summary-item"><div><span>Высокий риск</span><b>Требуют приоритетного контроля</b></div><strong id="cityHighRiskCount">0</strong></div>
+           <div class="summary-item"><div><span>Исполнение ИПР</span><b>По всем мероприятиям</b></div><strong id="cityIprPercent">0%</strong></div>
+         </div></article>
+         <article class="card"><div class="card-head"><div><h2>Статистика по школам</h2><p>Сравнение количества случаев и исполнения ИПР</p></div><span class="status green">Актуально</span></div><div class="table-wrap"><table style="min-width:720px"><thead><tr><th>Школа</th><th>Случаи</th><th>Высокий риск</th><th>К снятию</th><th>Мероприятия</th><th>Исполнение ИПР</th></tr></thead><tbody id="schoolStatsRows"><tr><td colspan="6" class="empty show">Данных по школам пока нет.</td></tr></tbody></table></div></article>
+         <article class="card" style="grid-column:1/-1"><div class="card-head"><div><h2>Распределение случаев по городу</h2><p>Агрегированные показатели без возможности перехода к ребёнку</p></div></div><div class="table-wrap"><table style="min-width:620px"><thead><tr><th>Группа показателей</th><th>Всего</th><th>Высокий риск</th><th>Средний риск</th><th>Низкий риск</th><th>К снятию статуса</th></tr></thead><tbody id="cityDistributionRows"><tr><td><b>Все образовательные организации</b></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table></div></article>
       </section>
 
       <section class="workbench" id="registry">
@@ -800,6 +801,7 @@
     updateMeasurePermissions();
     refreshCaseIprSummary();
     refreshCaseTeam();
+    refreshCityStats();
     const items = visiblePlanItems();
     const done = items.filter(isMeasureComplete).length;
     const percent = items.length ? Math.round(done / items.length * 100) : 0;
@@ -836,6 +838,55 @@
       $('span', row).textContent = 'Исполнитель поручений ИПР';
       $('.count', row).textContent = `${member.count} поруч.`;
       team.append(row);
+    }
+  }
+
+  function refreshCityStats() {
+    const rows = $$('#caseRows tr');
+    const measures = $$('#planList .plan-item');
+    const bySchool = new Map();
+    const city = { cases: rows.length, high: 0, medium: 0, low: 0, removal: 0, schools: new Set(), totalMeasures: 0, completedMeasures: 0 };
+    for (const row of rows) {
+      const school = row.dataset.school || 'Школа не указана';
+      if (!bySchool.has(school)) bySchool.set(school, { cases: 0, high: 0, removal: 0, totalMeasures: 0, completedMeasures: 0 });
+      const schoolStats = bySchool.get(school);
+      schoolStats.cases++;
+      if (row.dataset.risk === 'high') { schoolStats.high++; city.high++; }
+      if (row.dataset.risk === 'medium') city.medium++;
+      if (row.dataset.risk === 'low') city.low++;
+      if (row.dataset.status === 'К снятию') { schoolStats.removal++; city.removal++; }
+      city.schools.add(school);
+    }
+    for (const item of measures) {
+      const row = rows.find(candidate => candidate.dataset.id === item.dataset.caseId);
+      if (!row) continue;
+      const schoolStats = bySchool.get(row.dataset.school || 'Школа не указана');
+      schoolStats.totalMeasures++;
+      city.totalMeasures++;
+      if (isMeasureComplete(item)) { schoolStats.completedMeasures++; city.completedMeasures++; }
+    }
+    const iprPercent = city.totalMeasures ? Math.round(city.completedMeasures / city.totalMeasures * 100) : 0;
+    $('#citySchoolsCount').textContent = city.schools.size;
+    $('#cityCasesCount').textContent = city.cases;
+    $('#cityHighRiskCount').textContent = city.high;
+    $('#cityIprPercent').textContent = `${iprPercent}%`;
+    const bars = $$('#educationStats .aggregate-row');
+    const values = [city.cases ? Math.round((city.cases - city.high) / city.cases * 100) : 0, city.cases ? Math.round(city.medium / city.cases * 100) : 0, city.cases ? Math.round(city.high / city.cases * 100) : 0, iprPercent];
+    values.forEach((value, index) => { $('.bar-track i', bars[index]).style.width = `${value}%`; $('b', bars[index]).textContent = `${value}%`; });
+    $$('#educationStats .summary-list .summary-item strong').forEach((node, index) => node.textContent = [city.schools.size, city.cases, city.totalMeasures, '—'][index]);
+    $('#cityDistributionRows').innerHTML = `<tr><td><b>Все образовательные организации</b></td><td>${city.cases}</td><td>${city.high}</td><td>${city.medium}</td><td>${city.low}</td><td>${city.removal}</td></tr>`;
+    const statsRows = [...bySchool.entries()].sort(([a], [b]) => a.localeCompare(b, 'ru'));
+    $('#schoolStatsRows').replaceChildren();
+    if (!statsRows.length) {
+      const empty = document.createElement('tr');
+      empty.innerHTML = '<td colspan="6" class="empty show">Данных по школам пока нет.</td>';
+      $('#schoolStatsRows').append(empty);
+    } else for (const [school, stats] of statsRows) {
+      const row = document.createElement('tr');
+      const schoolPercent = stats.totalMeasures ? Math.round(stats.completedMeasures / stats.totalMeasures * 100) : 0;
+      row.innerHTML = `<td><b></b></td><td>${stats.cases}</td><td>${stats.high}</td><td>${stats.removal}</td><td>${stats.totalMeasures}</td><td><strong>${schoolPercent}%</strong></td>`;
+      $('td b', row).textContent = school;
+      $('#schoolStatsRows').append(row);
     }
   }
 
@@ -1148,6 +1199,7 @@
     showToast('Отметка о выполнении сохранена');
   });
   refreshCaseIprSummary();
+  refreshCityStats();
 
   $('#exportButton').addEventListener('click', () => {
     const csv = currentUserRole === 'education'
