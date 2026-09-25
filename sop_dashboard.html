@@ -291,6 +291,16 @@
     .demo-access { margin-top: 18px; padding: 12px 13px; border: 1px dashed #c7d3cc; border-radius: 11px; background: rgba(255,255,255,.45); color: var(--muted); font-size: 10px; }
     .demo-access b { display: block; color: var(--ink); margin-bottom: 4px; }
     .demo-access code { color: var(--forest-2); }
+    .quick-login { margin-top: 18px; padding: 13px; border: 1px solid #c9ddd4; border-radius: 11px; background: var(--mint); }
+    .quick-login b { display: block; color: var(--ink); font-size: 11px; margin-bottom: 8px; }
+    .quick-users { display: grid; gap: 6px; }
+    .quick-user { width: 100%; border: 1px solid #c4d9cf; border-radius: 8px; background: rgba(255,255,255,.7); color: var(--ink); padding: 8px 10px; display: flex; align-items: center; gap: 9px; text-align: left; }
+    .quick-user:hover { border-color: var(--forest-2); background: white; }
+    .quick-user-avatar { width: 27px; height: 27px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%; background: var(--forest); color: white; font-size: 9px; font-weight: 800; }
+    .quick-user strong, .quick-user span { display: block; }
+    .quick-user strong { font-size: 10px; }
+    .quick-user span { color: var(--muted); font-size: 9px; margin-top: 1px; }
+    .quick-login-note { margin-top: 7px; color: var(--muted); font-size: 9px; }
     .agreement { display: flex; gap: 8px; align-items: flex-start; color: var(--muted); font-size: 9px; margin: 2px 0 10px; }
     .agreement input { margin-top: 2px; }
     .user-menu-wrap { position: relative; }
@@ -378,6 +388,7 @@
         <div class="field"><label for="loginEmail">Служебная электронная почта</label><input id="loginEmail" type="email" autocomplete="username" required placeholder="name@organization.ru"></div>
         <div class="field"><label for="loginPassword">Пароль</label><div class="password-wrap"><input id="loginPassword" type="password" autocomplete="current-password" required minlength="8" placeholder="Не менее 8 символов"><button class="password-toggle" type="button" data-password="loginPassword">Показать</button></div></div>
         <button class="btn primary auth-submit" type="submit">Войти в систему</button><div class="auth-error" id="loginError" role="alert"></div>
+        <div class="quick-login"><b>Быстрый вход — выберите пользователя</b><div class="quick-users" id="quickUsers"></div><div class="quick-login-note">Доступ без пароля предназначен для демонстрационного режима на этом компьютере.</div></div>
         <div class="demo-access"><b>Демонстрационные роли</b><code>school@demo.ru</code> · <code>School2026!</code><br><code>kdn@demo.ru</code> · <code>Kdn2026!</code><br><code>medical@demo.ru</code> · <code>Medical2026!</code><br><code>social@demo.ru</code> · <code>Social2026!</code><br><code>education@demo.ru</code> · <code>Education2026!</code></div>
       </form>
       <form class="auth-form" id="registerForm" data-auth-pane="register">
@@ -573,6 +584,23 @@
     return name.trim().split(/\s+/).slice(0, 2).map(word => word[0]?.toUpperCase()).join('');
   }
 
+  function renderQuickUsers() {
+    const container = $('#quickUsers');
+    if (!container) return;
+    container.replaceChildren();
+    for (const user of readUsers()) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'quick-user';
+      button.dataset.userId = user.id;
+      button.innerHTML = '<span class="quick-user-avatar"></span><span><strong></strong><span></span></span>';
+      $('.quick-user-avatar', button).textContent = initials(user.name);
+      $('strong', button).textContent = user.name;
+      $('span span', button).textContent = `${user.organization} · ${roleLabels[user.role]}`;
+      container.append(button);
+    }
+  }
+
   async function ensureDemoUser() {
     const users = readUsers();
     const demoUsers = [
@@ -589,6 +617,7 @@
       }
     }
     localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    renderQuickUsers();
   }
 
   function openApplication(user) {
@@ -681,6 +710,17 @@
     showToast(`Вход выполнен: ${user.organization}`);
   });
 
+  $('#quickUsers').addEventListener('click', event => {
+    const button = event.target.closest('.quick-user');
+    if (!button) return;
+    const user = readUsers().find(item => item.id === button.dataset.userId);
+    if (!user) return;
+    localStorage.setItem(SESSION_KEY, user.id);
+    $('#loginError').textContent = '';
+    openApplication(user);
+    showToast(`Быстрый вход выполнен: ${user.organization}`);
+  });
+
   $('#registerForm').addEventListener('submit', async event => {
     event.preventDefault();
     const role = $('#registerRole').value;
@@ -694,6 +734,7 @@
     const user = { id: `user-${Date.now()}`, email, passwordHash: await hashPassword(password), name: $('#registerName').value.trim(), position: $('#registerPosition').value.trim(), role, organization: $('#registerOrganization').value.trim() };
     users.push(user);
     localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    renderQuickUsers();
     localStorage.setItem(SESSION_KEY, user.id);
     error.textContent = '';
     openApplication(user);
@@ -706,6 +747,7 @@
 
   (async () => {
     await ensureDemoUser();
+    renderQuickUsers();
     const sessionId = localStorage.getItem(SESSION_KEY);
     const user = readUsers().find(item => item.id === sessionId);
     if (user) openApplication(user);
