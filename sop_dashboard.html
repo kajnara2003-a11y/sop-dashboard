@@ -456,10 +456,12 @@
            <div class="summary-item"><div><span>Дети в реестре СОП</span><b>На текущую дату</b></div><strong id="cityCasesCount">0</strong></div>
            <div class="summary-item"><div><span>Семьи в реестре СОП</span><b>Уникальные семьи по составу данных</b></div><strong id="cityFamiliesCount">0</strong></div>
            <div class="summary-item"><div><span>Высокий риск</span><b>Требуют приоритетного контроля</b></div><strong id="cityHighRiskCount">0</strong></div>
-           <div class="summary-item"><div><span>Повторно в СОП</span><b>После выхода из статуса СОП</b></div><strong id="cityRepeatCount">0</strong></div>
-           <div class="summary-item"><div><span>Исполнение ИПР</span><b>По всем мероприятиям</b></div><strong id="cityIprPercent">0%</strong></div>
+            <div class="summary-item"><div><span>Повторно в СОП</span><b>После выхода из статуса СОП</b></div><strong id="cityRepeatCount">0</strong></div>
+            <div class="summary-item"><div><span>Мероприятия ИПР</span><b>Всего поручений по городу</b></div><strong id="cityAssignedExecutions">0</strong></div>
+            <div class="summary-item"><div><span>Исполнено ведомствами</span><b>Фактические отметки всех исполнителей</b></div><strong id="cityCompletedExecutions">0</strong></div>
+            <div class="summary-item"><div><span>Исполнение ИПР</span><b>Доля выполненных поручений</b></div><strong id="cityIprPercent">0%</strong></div>
          </div></article>
-          <article class="card"><div class="card-head"><div><h2>Статистика по школам</h2><p>Дети, семьи, повторные случаи и исполнение ИПР</p></div><span class="status green">Актуально</span></div><div class="table-wrap"><table style="min-width:900px"><thead><tr><th>Школа</th><th>Дети</th><th>Семьи</th><th>Повторно</th><th>Высокий риск</th><th>К снятию</th><th>Мероприятия</th><th>Исполнение ИПР</th></tr></thead><tbody id="schoolStatsRows"><tr><td colspan="8" class="empty show">Данных по школам пока нет.</td></tr></tbody></table></div></article>
+           <article class="card"><div class="card-head"><div><h2>Статистика по школам</h2><p>Дети, семьи, повторные случаи и исполнение всеми ведомствами</p></div><span class="status green">Актуально</span></div><div class="table-wrap"><table style="min-width:1080px"><thead><tr><th>Школа</th><th>Дети</th><th>Семьи</th><th>Повторно</th><th>Высокий риск</th><th>К снятию</th><th>Поручения</th><th>Исполнено ведомствами</th><th>Исполнение ИПР</th></tr></thead><tbody id="schoolStatsRows"><tr><td colspan="9" class="empty show">Данных по школам пока нет.</td></tr></tbody></table></div></article>
          <article class="card" style="grid-column:1/-1"><div class="card-head"><div><h2>Распределение случаев по городу</h2><p>Агрегированные показатели без возможности перехода к ребёнку</p></div></div><div class="table-wrap"><table style="min-width:620px"><thead><tr><th>Группа показателей</th><th>Всего</th><th>Высокий риск</th><th>Средний риск</th><th>Низкий риск</th><th>К снятию статуса</th></tr></thead><tbody id="cityDistributionRows"><tr><td><b>Все образовательные организации</b></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table></div></article>
       </section>
 
@@ -896,10 +898,10 @@
     const rows = $$('#caseRows tr');
     const measures = $$('#planList .plan-item');
     const bySchool = new Map();
-    const city = { cases: rows.length, high: 0, medium: 0, low: 0, removal: 0, repeat: 0, families: new Set(), schools: new Set(), totalMeasures: 0, completedMeasures: 0 };
+    const city = { cases: rows.length, high: 0, medium: 0, low: 0, removal: 0, repeat: 0, families: new Set(), schools: new Set(), totalMeasures: 0, completedMeasures: 0, assignedExecutions: 0, completedExecutions: 0 };
     for (const row of rows) {
       const school = row.dataset.school || 'Школа не указана';
-      if (!bySchool.has(school)) bySchool.set(school, { cases: 0, families: new Set(), repeat: 0, high: 0, removal: 0, totalMeasures: 0, completedMeasures: 0 });
+      if (!bySchool.has(school)) bySchool.set(school, { cases: 0, families: new Set(), repeat: 0, high: 0, removal: 0, totalMeasures: 0, completedMeasures: 0, assignedExecutions: 0, completedExecutions: 0 });
       const schoolStats = bySchool.get(school);
       schoolStats.cases++;
       schoolStats.families.add(familyKey(row));
@@ -917,15 +919,24 @@
       const schoolStats = bySchool.get(row.dataset.school || 'Школа не указана');
       schoolStats.totalMeasures++;
       city.totalMeasures++;
+      const roles = getAssignedRoles(item);
+      const completions = getCompletions(item);
+      schoolStats.assignedExecutions += roles.length;
+      city.assignedExecutions += roles.length;
+      const completedForItem = roles.filter(role => Boolean(completions[role])).length;
+      schoolStats.completedExecutions += completedForItem;
+      city.completedExecutions += completedForItem;
       if (isMeasureComplete(item)) { schoolStats.completedMeasures++; city.completedMeasures++; }
     }
-    const iprPercent = city.totalMeasures ? Math.round(city.completedMeasures / city.totalMeasures * 100) : 0;
+    const iprPercent = city.assignedExecutions ? Math.round(city.completedExecutions / city.assignedExecutions * 100) : 0;
     $('#citySchoolsCount').textContent = city.schools.size;
     $('#cityCasesCount').textContent = city.cases;
     $('#cityFamiliesCount').textContent = city.families.size;
     $('#familiesMetric').textContent = `${city.families.size} семей`;
     $('#cityHighRiskCount').textContent = city.high;
     $('#cityRepeatCount').textContent = city.repeat;
+    $('#cityAssignedExecutions').textContent = city.assignedExecutions;
+    $('#cityCompletedExecutions').textContent = city.completedExecutions;
     $('#cityIprPercent').textContent = `${iprPercent}%`;
     const bars = $$('#educationStats .aggregate-row');
     const values = [city.cases ? Math.round((city.cases - city.high) / city.cases * 100) : 0, city.cases ? Math.round(city.medium / city.cases * 100) : 0, city.cases ? Math.round(city.high / city.cases * 100) : 0, iprPercent];
@@ -935,12 +946,12 @@
     $('#schoolStatsRows').replaceChildren();
     if (!statsRows.length) {
       const empty = document.createElement('tr');
-      empty.innerHTML = '<td colspan="6" class="empty show">Данных по школам пока нет.</td>';
+      empty.innerHTML = '<td colspan="9" class="empty show">Данных по школам пока нет.</td>';
       $('#schoolStatsRows').append(empty);
     } else for (const [school, stats] of statsRows) {
       const row = document.createElement('tr');
-      const schoolPercent = stats.totalMeasures ? Math.round(stats.completedMeasures / stats.totalMeasures * 100) : 0;
-      row.innerHTML = `<td><b></b></td><td>${stats.cases}</td><td>${stats.families.size}</td><td>${stats.repeat}</td><td>${stats.high}</td><td>${stats.removal}</td><td>${stats.totalMeasures}</td><td><strong>${schoolPercent}%</strong></td>`;
+      const schoolPercent = stats.assignedExecutions ? Math.round(stats.completedExecutions / stats.assignedExecutions * 100) : 0;
+      row.innerHTML = `<td><b></b></td><td>${stats.cases}</td><td>${stats.families.size}</td><td>${stats.repeat}</td><td>${stats.high}</td><td>${stats.removal}</td><td>${stats.totalMeasures}</td><td>${stats.completedExecutions}</td><td><strong>${schoolPercent}%</strong></td>`;
       $('td b', row).textContent = school;
       $('#schoolStatsRows').append(row);
     }
