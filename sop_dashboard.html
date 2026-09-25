@@ -215,6 +215,16 @@
     .aggregate-row { display: grid; grid-template-columns: 145px minmax(0,1fr) 38px; gap: 11px; align-items: center; font-size: 11px; }
     .aggregate-row span { color: var(--muted); }
     .aggregate-row b { text-align: right; }
+    .stats-period { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 10px; font-weight: 800; white-space: nowrap; }
+    .stats-period select { border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink); padding: 6px 8px; font-size: 10px; }
+    .school-chart { padding: 0 20px 20px; display: grid; gap: 11px; }
+    .school-chart-row { display: grid; grid-template-columns: minmax(130px, 1fr) minmax(120px, 2fr) 90px; gap: 11px; align-items: center; font-size: 10px; }
+    .school-chart-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .school-chart-bars { display: grid; gap: 4px; }
+    .school-chart-bar { height: 7px; border-radius: 6px; background: #e7ebe7; overflow: hidden; }
+    .school-chart-bar i { display: block; height: 100%; border-radius: inherit; background: var(--sage); }
+    .school-chart-bar.completed i { background: var(--blue); }
+    .school-chart-value { color: var(--muted); text-align: right; }
     .bar-track { height: 8px; border-radius: 8px; background: #e7ebe7; overflow: hidden; }
     .bar-track i { display: block; height: 100%; border-radius: inherit; background: var(--sage); }
     .summary-list { padding: 0 20px 20px; display: grid; gap: 10px; }
@@ -433,7 +443,7 @@
     <main>
       <section class="page-heading" id="overview">
         <div><div class="eyebrow">Среда, 23 сентября</div><h1>Сопровождение семей</h1><p class="subtitle">Единая картина по детям в социально опасном положении, мероприятиям ИПР и межведомственной работе.</p></div>
-        <div class="actions"><button class="btn" id="exportButton"><svg><use href="#i-download"/></svg>Выгрузить отчёт</button><button class="btn primary" id="addCaseButton"><svg><use href="#i-plus"/></svg>Добавить случай</button></div>
+        <div class="actions"><button class="btn" id="exportButton"><svg><use href="#i-download"/></svg>Выгрузить отчёт</button><button class="btn" id="backupExportButton">Сохранить данные</button><button class="btn" id="backupImportButton">Загрузить данные</button><input id="backupImportInput" type="file" accept="application/json,.json" hidden><button class="btn primary" id="addCaseButton"><svg><use href="#i-plus"/></svg>Добавить случай</button></div>
       </section>
       <div class="role-scope" id="roleScope"><svg><use href="#i-lock"/></svg><span><b id="roleScopeTitle">Ваш уровень доступа:</b> <span id="roleScopeText">доступ определяется ролью организации.</span></span></div>
 
@@ -445,7 +455,7 @@
       </section>
 
       <section class="aggregate-grid" id="educationStats" data-role-hidden="true">
-        <article class="card"><div class="card-head"><div><h2>Общая динамика сопровождения</h2><p>Обезличенные данные по всем образовательным организациям района</p></div><span class="status green">За 30 дней</span></div><div class="aggregate-bars">
+         <article class="card"><div class="card-head"><div><h2>Общая динамика сопровождения</h2><p>Обезличенные данные по всем образовательным организациям района</p></div><label class="stats-period">Период<select id="statsPeriod"><option value="30">30 дней</option><option value="90">90 дней</option><option value="365">Год</option><option value="all">Всё время</option></select></label></div><div class="aggregate-bars">
           <div class="aggregate-row"><span>Положительная динамика</span><div class="bar-track"><i style="width:0"></i></div><b>0%</b></div>
           <div class="aggregate-row"><span>Без изменений</span><div class="bar-track"><i style="width:0;background:var(--gold)"></i></div><b>0%</b></div>
           <div class="aggregate-row"><span>Отрицательная динамика</span><div class="bar-track"><i style="width:0;background:var(--red)"></i></div><b>0%</b></div>
@@ -462,7 +472,9 @@
             <div class="summary-item"><div><span>Исполнение ИПР</span><b>Доля выполненных поручений</b></div><strong id="cityIprPercent">0%</strong></div>
          </div></article>
            <article class="card"><div class="card-head"><div><h2>Статистика по школам</h2><p>Дети, семьи, повторные случаи и исполнение всеми ведомствами</p></div><span class="status green">Актуально</span></div><div class="table-wrap"><table style="min-width:1080px"><thead><tr><th>Школа</th><th>Дети</th><th>Семьи</th><th>Повторно</th><th>Высокий риск</th><th>К снятию</th><th>Поручения</th><th>Исполнено ведомствами</th><th>Исполнение ИПР</th></tr></thead><tbody id="schoolStatsRows"><tr><td colspan="9" class="empty show">Данных по школам пока нет.</td></tr></tbody></table></div></article>
-         <article class="card" style="grid-column:1/-1"><div class="card-head"><div><h2>Распределение случаев по городу</h2><p>Агрегированные показатели без возможности перехода к ребёнку</p></div></div><div class="table-wrap"><table style="min-width:620px"><thead><tr><th>Группа показателей</th><th>Всего</th><th>Высокий риск</th><th>Средний риск</th><th>Низкий риск</th><th>К снятию статуса</th></tr></thead><tbody id="cityDistributionRows"><tr><td><b>Все образовательные организации</b></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table></div></article>
+           <article class="card" style="grid-column:1/-1"><div class="card-head"><div><h2>График по школам</h2><p>Дети и исполнение поручений всеми ведомствами</p></div></div><div class="school-chart" id="schoolChart"><div class="empty show">Данных по школам пока нет.</div></div></article>
+           <article class="card" style="grid-column:1/-1"><div class="card-head"><div><h2>Распределение случаев по городу</h2><p>Агрегированные показатели без возможности перехода к ребёнку</p></div></div><div class="table-wrap"><table style="min-width:620px"><thead><tr><th>Группа показателей</th><th>Всего</th><th>Высокий риск</th><th>Средний риск</th><th>Низкий риск</th><th>К снятию статуса</th></tr></thead><tbody id="cityDistributionRows"><tr><td><b>Все образовательные организации</b></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table></div></article>
+           <article class="card" style="grid-column:1/-1"><div class="card-head"><div><h2>Отчёт по повторным случаям</h2><p>Дети, повторно поставленные на учёт после выхода из СОП</p></div><button class="btn soft small" id="exportRepeatButton">Выгрузить отчёт</button></div><div class="table-wrap"><table style="min-width:520px"><thead><tr><th>Школа</th><th>Повторные дети</th><th>Доля от детей школы</th></tr></thead><tbody id="repeatStatsRows"><tr><td colspan="3" class="empty show">Повторных случаев пока нет.</td></tr></tbody></table></div></article>
       </section>
 
       <section class="workbench" id="registry">
@@ -560,6 +572,7 @@
   const toast = $('#toast');
   const USERS_KEY = 'sop-dashboard-users-v1';
   const SESSION_KEY = 'sop-dashboard-session-v1';
+  const DATA_KEY = 'sop-dashboard-data-v2';
   let currentUserRole = null;
   let selectedCaseRow = null;
   let caseFormMode = 'create';
@@ -750,6 +763,7 @@
   (async () => {
     await ensureDemoUser();
     renderQuickUsers();
+    restoreData();
     const sessionId = localStorage.getItem(SESSION_KEY);
     const user = readUsers().find(item => item.id === sessionId);
     if (user) openApplication(user);
@@ -894,9 +908,70 @@
     return parts.length > 1 ? parts.join('|') : `case:${row.dataset.id}`;
   }
 
+  function inSelectedPeriod(value) {
+    const period = $('#statsPeriod')?.value || '30';
+    if (period === 'all' || !value) return true;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return true;
+    return date >= new Date(Date.now() - Number(period) * 86400000);
+  }
+
+  function collectData() {
+    return {
+      cases: $$('#caseRows tr').map(row => ({ dataset: { ...row.dataset }, html: row.innerHTML })),
+      measures: $$('#planList .plan-item').map(item => ({ dataset: { ...item.dataset }, html: item.innerHTML }))
+    };
+  }
+
+  function persistData() {
+    localStorage.setItem(DATA_KEY, JSON.stringify(collectData()));
+  }
+
+  function clearDataDom() {
+    $$('#caseRows tr').forEach(row => row.remove());
+    $$('#planList .plan-item').forEach(item => item.remove());
+  }
+
+  function applyData(data) {
+    clearDataDom();
+    for (const saved of data?.cases || []) {
+      const row = document.createElement('tr');
+      Object.assign(row.dataset, saved.dataset || {});
+      row.innerHTML = saved.html || '';
+      $('#caseRows').append(row);
+      bindCaseRow(row);
+    }
+    for (const saved of data?.measures || []) {
+      const item = document.createElement('div');
+      item.className = 'plan-item';
+      Object.assign(item.dataset, saved.dataset || {});
+      item.innerHTML = saved.html || '';
+      $('#planList').append(item);
+    }
+    $('#registryCount').textContent = $$('#caseRows tr').length;
+    $('#activeCasesMetric').textContent = $$('#caseRows tr').length;
+    $('#emptyState').classList.toggle('show', !$$('#caseRows tr').length);
+    refreshPlanView();
+    filterCases();
+  }
+
+  function restoreData() {
+    try { applyData(JSON.parse(localStorage.getItem(DATA_KEY) || '{}')); }
+    catch { applyData({}); }
+  }
+
+  function downloadFile(name, content, type = 'application/json') {
+    const url = URL.createObjectURL(new Blob([content], { type }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = name;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   function refreshCityStats() {
-    const rows = $$('#caseRows tr');
-    const measures = $$('#planList .plan-item');
+    const rows = $$('#caseRows tr').filter(row => inSelectedPeriod(row.dataset.createdAt));
+    const measures = $$('#planList .plan-item').filter(item => inSelectedPeriod(item.dataset.createdAt));
     const bySchool = new Map();
     const city = { cases: rows.length, high: 0, medium: 0, low: 0, removal: 0, repeat: 0, families: new Set(), schools: new Set(), totalMeasures: 0, completedMeasures: 0, assignedExecutions: 0, completedExecutions: 0 };
     for (const row of rows) {
@@ -946,7 +1021,7 @@
     $('#schoolStatsRows').replaceChildren();
     if (!statsRows.length) {
       const empty = document.createElement('tr');
-      empty.innerHTML = '<td colspan="9" class="empty show">Данных по школам пока нет.</td>';
+      empty.innerHTML = '<td colspan="9" class="empty show">Данных по школам за выбранный период пока нет.</td>';
       $('#schoolStatsRows').append(empty);
     } else for (const [school, stats] of statsRows) {
       const row = document.createElement('tr');
@@ -954,6 +1029,36 @@
       row.innerHTML = `<td><b></b></td><td>${stats.cases}</td><td>${stats.families.size}</td><td>${stats.repeat}</td><td>${stats.high}</td><td>${stats.removal}</td><td>${stats.totalMeasures}</td><td>${stats.completedExecutions}</td><td><strong>${schoolPercent}%</strong></td>`;
       $('td b', row).textContent = school;
       $('#schoolStatsRows').append(row);
+    }
+    $('#schoolChart').replaceChildren();
+    if (!statsRows.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty show';
+      empty.textContent = 'Данных по школам за выбранный период пока нет.';
+      $('#schoolChart').append(empty);
+    } else {
+      const maxCases = Math.max(...statsRows.map(([, stats]) => stats.cases), 1);
+      for (const [school, stats] of statsRows) {
+        const chartRow = document.createElement('div');
+        const schoolPercent = stats.assignedExecutions ? Math.round(stats.completedExecutions / stats.assignedExecutions * 100) : 0;
+        chartRow.className = 'school-chart-row';
+        chartRow.innerHTML = `<strong title=""></strong><div class="school-chart-bars"><div class="school-chart-bar"><i style="width:${Math.round(stats.cases / maxCases * 100)}%"></i></div><div class="school-chart-bar completed"><i style="width:${schoolPercent}%"></i></div></div><span class="school-chart-value">${stats.cases} детей · ${schoolPercent}%</span>`;
+        $('strong', chartRow).textContent = school;
+        $('strong', chartRow).title = school;
+        $('#schoolChart').append(chartRow);
+      }
+    }
+    const repeatRows = statsRows.filter(([, stats]) => stats.repeat);
+    $('#repeatStatsRows').replaceChildren();
+    if (!repeatRows.length) {
+      const empty = document.createElement('tr');
+      empty.innerHTML = '<td colspan="3" class="empty show">Повторных случаев за выбранный период нет.</td>';
+      $('#repeatStatsRows').append(empty);
+    } else for (const [school, stats] of repeatRows) {
+      const row = document.createElement('tr');
+      row.innerHTML = `<td><b></b></td><td>${stats.repeat}</td><td>${stats.cases ? Math.round(stats.repeat / stats.cases * 100) : 0}%</td>`;
+      $('td b', row).textContent = school;
+      $('#repeatStatsRows').append(row);
     }
   }
 
@@ -1010,6 +1115,7 @@
   $('#globalSearch').addEventListener('input', filterCases);
   $('#statusFilter').addEventListener('change', filterCases);
   $('#riskFilter').addEventListener('change', filterCases);
+  $('#statsPeriod').addEventListener('change', refreshCityStats);
   $('#showAllButton').addEventListener('click', () => { $('#globalSearch').value = ''; $('#statusFilter').value = 'all'; $('#riskFilter').value = 'all'; filterCases(); });
 
   function bindCaseRow(row) {
@@ -1124,7 +1230,10 @@
     const riskLabel = { high: 'Высокий', medium: 'Средний', low: 'Низкий' }[risk];
     const riskColor = { high: 'var(--red)', medium: 'var(--gold)', low: 'var(--sage)' }[risk];
     const row = caseFormMode === 'edit' ? selectedCaseRow : document.createElement('tr');
-    if (caseFormMode === 'create') row.dataset.id = `СОП-${String(Date.now()).slice(-6)}`;
+    if (caseFormMode === 'create') {
+      row.dataset.id = `СОП-${String(Date.now()).slice(-6)}`;
+      row.dataset.createdAt = new Date().toISOString();
+    }
     row.dataset.name = name.toLowerCase();
     row.dataset.status = 'СОП';
     row.dataset.risk = risk;
@@ -1155,6 +1264,7 @@
     $('#caseDialog').close();
     $('#caseForm').reset();
     row.click();
+    persistData();
     showToast(caseFormMode === 'edit' ? 'Изменения в карточке сохранены' : `Карточка «${name}» создана как черновик`);
   });
 
@@ -1193,6 +1303,7 @@
       item.innerHTML = `<button class="check" type="button" aria-label="Отметить выполнение"></button><div><h3></h3><p></p><div class="plan-meta"><span class="agency"></span><span></span></div><p class="completion-note hidden"></p></div><div class="plan-date"><b></b><span class="status gold">Запланировано</span><button type="button" class="completion-action">Отметить выполнение</button><button type="button" class="measure-edit">Изменить</button></div>`;
     }
     item.dataset.date = $('#measureDate').value;
+    if (!item.dataset.createdAt) item.dataset.createdAt = new Date().toISOString();
     item.dataset.caseId = selectedCaseRow.dataset.id;
     item.dataset.agencyRoles = JSON.stringify(roles);
     const previousCompletions = getCompletions(item);
@@ -1203,6 +1314,7 @@
     $('.plan-meta span:last-child', item).textContent = roles.length > 1 ? 'Совместное исполнение' : 'Ответственное ведомство';
     $('.plan-date b', item).textContent = new Date(`${$('#measureDate').value}T00:00:00`).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
     if (!editingMeasure) $('#planList').append(item);
+    persistData();
     refreshPlanView();
     filterCases();
     $('#measureForm').reset();
@@ -1263,6 +1375,7 @@
       result,
       document: $('#completionDocument').value.trim()
     } });
+    persistData();
     $('#completionDialog').close();
     completingMeasure = null;
     refreshPlanView();
@@ -1273,15 +1386,36 @@
 
   $('#exportButton').addEventListener('click', () => {
     const csv = currentUserRole === 'education'
-      ? '\ufeffПоказатель;Значение\r\nСлучаи на сопровождении;0\r\nВысокий риск;0\r\nНарушены сроки;0\r\nК снятию статуса;0'
+      ? `\ufeffПоказатель;Значение\r\nШколы в сопровождении;${$('#citySchoolsCount').textContent}\r\nДети в СОП;${$('#cityCasesCount').textContent}\r\nСемьи в СОП;${$('#cityFamiliesCount').textContent}\r\nПовторно в СОП;${$('#cityRepeatCount').textContent}\r\nПоручения всех ведомств;${$('#cityAssignedExecutions').textContent}\r\nИсполнено ведомствами;${$('#cityCompletedExecutions').textContent}\r\nИсполнение ИПР;${$('#cityIprPercent').textContent}\r\n\r\nШкола;Дети;Семьи;Повторно;Высокий риск;К снятию;Поручения;Исполнено ведомствами;Исполнение ИПР\r\n${$$('#schoolStatsRows tr').filter(row => $('td', row)?.textContent !== 'Данных по школам пока нет.').map(row => $$('td', row).map(cell => cell.textContent.trim()).join(';')).join('\r\n')}`
       : `\ufeffРебёнок;Номер дела;Статус;Риск;Куратор\r\n${$$('#caseRows tr').map(row => [$('.child strong', row)?.textContent, row.dataset.id, row.dataset.status, $('.risk b', row)?.textContent, $('.person-name', row)?.textContent].join(';')).join('\r\n')}`;
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = currentUserRole === 'education' ? 'общая_статистика_соп.csv' : 'реестр_соп.csv';
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    downloadFile(currentUserRole === 'education' ? 'статистика_города_и_школ.csv' : 'реестр_соп.csv', csv, 'text/csv;charset=utf-8');
     showToast('Отчёт сформирован с учётом текущих прав доступа');
+  });
+
+  $('#exportRepeatButton').addEventListener('click', () => {
+    const csv = `\ufeffШкола;Повторные дети;Доля от детей школы\r\n${$$('#repeatStatsRows tr').filter(row => $('td', row)?.textContent !== 'Повторных случаев за выбранный период нет.').map(row => $$('td', row).map(cell => cell.textContent.trim()).join(';')).join('\r\n')}`;
+    downloadFile('отчёт_повторные_случаи_СОП.csv', csv, 'text/csv;charset=utf-8');
+    showToast('Отчёт по повторным случаям выгружен');
+  });
+
+  $('#backupExportButton').addEventListener('click', () => {
+    downloadFile(`резервная_копия_соп_${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(collectData(), null, 2));
+    showToast('Резервная копия данных сохранена');
+  });
+  $('#backupImportButton').addEventListener('click', () => $('#backupImportInput').click());
+  $('#backupImportInput').addEventListener('change', async event => {
+    const file = event.target.files[0];
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      if (!Array.isArray(data.cases) || !Array.isArray(data.measures)) throw new Error('invalid backup');
+      applyData(data);
+      persistData();
+      selectedCaseRow = null;
+      clearSelectedCase();
+      showToast('Резервная копия загружена');
+    } catch { showToast('Не удалось загрузить резервную копию JSON'); }
+    event.target.value = '';
   });
 
   $('#prepareRemovalButton').addEventListener('click', event => { event.currentTarget.textContent = 'Пакет сформирован'; event.currentTarget.disabled = true; showToast('Проект решения и перечень приложений подготовлены'); });
